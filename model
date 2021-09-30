@@ -1,0 +1,180 @@
+import pandas as pd
+import pickle
+
+#veriseti = pd.read_csv("C:/a.csv", encoding='utf-8', delimiter=',')
+
+import re
+import nltk
+
+nltk.download('punkt')
+import nltk as nlp
+
+nltk.download('wordnet')
+
+text_list = []
+
+for text in veriseti.text:
+    text = text.lower()  # Büyük harften Küçük harfe çevirme
+    text = re.sub("[^abcçdefgğhıijklmnoöprsştuüvyz]", " ",
+                  text)  # Türkçe harfler dışındaki tüm karakterleri boşluk ile değiştir.
+    text = nltk.word_tokenize(text)  # Cümledeki kelimeleri birbirinden ayır.
+    lemma = nlp.WordNetLemmatizer()
+    text = [lemma.lemmatize(word) for word in text]  # Kelimeleri kök formuna dönüştürür.
+    text = " ".join(text)  # Metinleri birleştirir
+    text_list.append(text)  # Metinleri text_list adlı dizinin sonuna ekler
+
+from collections import Counter
+
+tum_kelimeler = []
+for dizin, rows in veriseti.iterrows():  # Veri seti içindeki tüm satır ve sütunları tarayarak tüm kelimeleri çıkarır.
+    text = rows.text
+    tum_kelimeler.extend(text.split(
+        " "))  # Split komutu ile kelimeler bölünür ve extend komutuyla kelimeler tum_kelimeler dizisinde birleştirilir.
+
+kelime_frekansı = Counter(tum_kelimeler)  # Counter ile kelimeler ve sayıları hesaplanır.
+
+stopwords = ['bir', 've', 'bu', 'da', 'de', 'için', 'nın', 'nda', 'daha', 'çok', 'gibi', 'o', 'ile', 'olarak',
+             'ama',
+             'sonra', 'ne', 'kadar', 'olan', 'her', 'en', 'dedi', 'diye', 'ki', 'ya', 'büyük', 'iki',
+             'oldugunu', 'a',
+             'var', 'zaman', 'ise', 'sey', 'degil', 'ilk', 'ben', 'oldugu', 'iyi', 'önce', 'içinde', 'yeni',
+             'son',
+             'kendi', 'in', 's', 'göre', 'ancak', 'onu', 'bile', 'hiç', 'onun', 'bütün', 'ayni', 'baska',
+             'dogru', 'mi',
+             'yok', 'in', 'nin', 'böyle', 'oldu', 'etti', 'bunu', 'nasil', 'tek', 'hem', 'bana', 'üzerine',
+             'çünkü',
+             'sadece', 'ona', 'birlikte', 'ilgili', 'önemli', 'i', 'devam', 'i', 'bin', 'hiçbir', 'sekilde',
+             'bunun',
+             'su', 'artik', 'benim', 'tüm', 'eden', 'nin', 'el', 'vardi', 'gelen', 'veya', 'beni', 'diger',
+             'simdi',
+             'e', 'mi', 'yine', 'biri', 'fazla', 'insan', 'uzun', 'söyledi', 'küçük', 'biz', 'bazi', 'öyle',
+             'ortaya',
+             'üzerinde', 'burada', 'hemen', 'üç', 'yani', 'eski', 'kez', 'fakat', 'ardindan', 'tam', 'yapilan',
+             'neden',
+             'is', 'biraz', 'pek', 'sen', 'üzere', 'the', 'olmak', 'yerine', 'geçen', 'iste', 'geldi', 'bizim',
+             'az',
+             'belki', 'yaptigi', 'verdi', 'kisi', 'bulunan', 'un', 'b', 'olmasi', 'olur', 'sahip', 'eger',
+             'birkaç',
+             'olacak', 'etmek', 'an', 'anda', 'özellikle', 'vardir', 'konusunda', 'hatta', 'hala', 'hep',
+             'konustu',
+             'ragmen', 'aldi', 'birçok', 'orada', 'nedeniyle', 'seyi', 'evet', 'bunlar', 'bize', 'bundan',
+             'olsa',
+             'degildir', 'çikti', 'ye', 'zaten', 'onlar', 'yapan', 'onlarin', 'kötü', 'kendisine', 'edilen',
+             'seyler',
+             'yerde', 'halde', 'ettigi', 'boyunca', 'dan', 'ait', 'belli', 'olmayan', 'sirada', 'of', 'olup',
+             'yoktu',
+             'ediyor', 'sanki', 'basina', 'disinda', 'degildi', 'ele', 'siz', 'zamanda', 'önünde', 'yalnizca',
+             'seni',
+             'yapti', 'c', 'abd', 'sordu', 'uygun', 'böylece', 'm', 'mu', 'yana', 'gerek', 'bulundugu',
+             'kendisini',
+             'size', 'hareket', 'ibn', 'bagli', 'onlara', 'kim', 'demek', 'yaklasik', 'konusu', 'insanlarin',
+             'herkes',
+             'hafta', 'fark', 'nun', 'bizi', 'yüzden', 'dikkat', 'tarihi', 'yardim', 'içine', 'göz',
+             'arasindaki',
+             'olabilir', 'arada', 'iç', 'kalan', 'yalniz', 'bunlarin', 'adi', 'verdigi', 'herhangi', 'tabii',
+             'kendine',
+             'veren', ]
+
+turkcekarakter = "abcçdefgğhıijklmnoöprsştuüvyz"  # Türkçe karakterler
+
+
+def ana_kelimeler(string):
+    if not any(c not in turkcekarakter for c in string):
+        return True
+    else:
+        return False
+
+
+# Belirli bir sayıdan az bulunan kelimeleri filtreliyoruz.
+esik_deger = 60
+
+# Kelime frekansı adında bir sözlük oluşturarak esik değerden yüksek kelimeleri alıyoruz.
+kelime_frekansı = dict(filter(lambda x: x[1] > esik_deger,
+                              kelime_frekansı.items()))  # items komutu ile kelime frekansının anahtar ve value değerleri işlenir.
+
+# Kelimeler listesi oluşturulur.
+kelimeler = list(
+    kelime_frekansı.keys())  # Keys komutu ile kelime frekansındaki sadece anahtarları yani sadece kelimelerin bulunduğu bir liste oluşturulur.
+
+# Stopwordler çıkarılarak kelimelerin son hali oluşturulur.
+filtreli_kelimeler = [w for w in kelimeler if
+                      not w in stopwords]  # Eğer kelimeler adlı listedeki kelimeler etkisiz kelimeler listesinde yoksa filtreli kelimeler adlı diziye eklenir.
+
+filtreli_kelimeler = list(filter(ana_kelimeler, filtreli_kelimeler))[
+                     1:]  # Türkçe karakterlerin olmadığı durumlar çıkarılır.
+                     
+'''with open('outfile', 'wb') as fp:
+    pickle.dump(filtreli_kelimeler, fp)'''
+ # Filter
+with open ('outfile', 'rb') as fp:
+    filtreli_kelimeler = pickle.load(fp)
+kelime_vektor = [0] * len(filtreli_kelimeler)
+def vektor_olusturma(text):
+    text_kelimeler = text.split(" ")  # Textdeki kelimeleri ayırırız ve text_kelimelerde tutarız.
+    text_vektor = [0] * len(kelime_vektor)
+    for word in text_kelimeler:
+        if word in filtreli_kelimeler:  # Textdeki kelimeler filtrelenmiş kelimelerde var ise döngü dönmeye devem edecek.
+            idx = filtreli_kelimeler.index(word)  # Kelimelerin listedeki konumu öğrenilir.
+            text_vektor[idx] += 1  # Kelime textde bulundukça dizisindeki değer artacaktır.
+
+    return text_vektor  # text_vektor değerini döndürerek fonksiyon dışında kullanılabilir hale getirilir.
+
+
+tum_vektorler = []
+
+for idx, row in veriseti.iterrows():  # Veri seti içindeki tüm satır ve sütunları tarayarak tüm kelimeleri çıkarır.
+    text = veriseti.loc[idx, "text"]
+    tum_vektorler.append(vektor_olusturma(text))  # Oluşturulan vektorler tüm vektörler adında toplanır.
+
+etiket = veriseti["category"].tolist()  # Metinlerin kategorileri liste haline getirilir.
+
+model_veriseti = list(zip(tum_vektorler, etiket))  # Metinler ve kategorileri birleştirir .
+
+from sklearn.utils import shuffle
+
+model_veriseti_karisik = shuffle(model_veriseti)  # Model veriseti karıştırılır.
+tum_vektorler_karisik, etiket_karisik = zip(
+    *model_veriseti_karisik)  # Karıştırılan veri seti tekrar vektor ve etiket olarak ayrılır.
+
+veri_uzunluk = len(tum_vektorler)
+# Verinin bir kısmı train olarak ayrılır.
+train_x, train_y = tum_vektorler_karisik[:int(veri_uzunluk * 3 / 4)], etiket_karisik[:int(veri_uzunluk * 3 / 4)]
+
+# Verinin kalan kısmı ise test olarak ayrılır.
+test_x, test_y = tum_vektorler_karisik[int(veri_uzunluk * 3 / 4):], etiket_karisik[int(veri_uzunluk * 3 / 4):]
+
+from sklearn.ensemble import RandomForestClassifier
+
+# 100 ağaçlı random forest oluşturulur.
+random_forest = RandomForestClassifier(n_estimators=100)
+
+# Random forestın veri üzerinde öğrenmesi yapılır.
+random_forest = random_forest.fit(train_x, train_y)
+
+'''filename = './models/randomforest.sav'
+random_forest = pickle.load(open(filename, 'rb'))'''
+
+from sklearn.metrics import accuracy_score
+
+# Test seti için tahmin oluşturur.
+#y_test_tahmin_rf = random_forest.predict(test_x)
+
+from sklearn.naive_bayes import MultinomialNB
+
+# Naive Bayes tanımlanır ve veri üzerinde öğrenmesi yapılır.
+Mnb = MultinomialNB()
+Mnb.fit(train_x, train_y)
+
+'''filename = './models/naivebayes.sav'
+Mnb = pickle.load(open(filename, 'rb'))'''
+
+# Test seti için tahmin oluşturulur.
+#y_test_tahmin_nb = Mnb.predict(test_x)
+
+haber= input("Haber metnini giriniz:")
+haber_vektor = vektor_olusturma(haber)
+kategori_nb = Mnb.predict([haber_vektor])
+kategori_rf = random_forest.predict([haber_vektor])
+print("Haber kategorisi NB:", kategori_nb, end="\n")
+print("Haber kategorisi RF:", kategori_rf, end="\n")
+
